@@ -16,16 +16,19 @@ const isProd = process.env.NODE_ENV === 'production';
 const isTest = process.env.NODE_ENV === 'test';
 const isDev = !isProd && !isTest;
 
+const sass = require('gulp-sass')(require('sass'));
+
+
 function styles() {
   return src('app/styles/*.scss', {
     sourcemaps: !isProd,
   })
     .pipe($.plumber())
-    .pipe($.sass.sync({
+    .pipe(sass.sync({
       outputStyle: 'expanded',
       precision: 10,
       includePaths: ['.']
-    }).on('error', $.sass.logError))
+    }).on('error', sass.logError))
     .pipe($.postcss([
       autoprefixer()
     ]))
@@ -33,7 +36,7 @@ function styles() {
       sourcemaps: !isProd,
     }))
     .pipe(server.reload({stream: true}));
-};
+}
 
 function scripts() {
   return src('app/scripts/**/*.js', {
@@ -45,7 +48,7 @@ function scripts() {
       sourcemaps: !isProd ? '.' : false,
     }))
     .pipe(server.reload({stream: true}));
-};
+}
 
 
 const lintBase = (files, options) => {
@@ -58,10 +61,10 @@ const lintBase = (files, options) => {
 function lint() {
   return lintBase('app/scripts/**/*.js', { fix: true })
     .pipe(dest('app/scripts'));
-};
+}
 function lintTest() {
   return lintBase('test/spec/**/*.js');
-};
+}
 
 function html() {
   return src('app/*.html')
@@ -85,12 +88,12 @@ function images() {
   return src('app/images/**/*', { since: lastRun(images) })
     .pipe($.imagemin())
     .pipe(dest('dist/images'));
-};
+}
 
 function fonts() {
   return src('app/fonts/**/*.{eot,svg,ttf,woff,woff2}')
     .pipe($.if(!isProd, dest('.tmp/fonts'), dest('dist/fonts')));
-};
+}
 
 function extras() {
   return src([
@@ -99,7 +102,7 @@ function extras() {
   ], {
     dot: true
   }).pipe(dest('dist'));
-};
+}
 
 function clean() {
   return del(['.tmp', 'dist'])
@@ -125,6 +128,7 @@ const build = series(
 function startAppServer() {
   server.init({
     notify: false,
+    open: false,
     port,
     server: {
       baseDir: ['.tmp', 'app'],
